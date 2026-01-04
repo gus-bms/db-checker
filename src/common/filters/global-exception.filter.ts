@@ -131,6 +131,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           : undefined;
 
       details = prismaCode ? [{ prismaCode }] : [];
+    } else if (exception instanceof Error) {
+      // 일반 Error 처리 (여기서 message/type을 채워줘야 함)
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+      code = 'INTERNAL_ERROR';
+      message = exception.message || message;
+      type = exception.name || type;
+
+      // 운영에서는 stack을 숨기고, 개발에서는 노출(또는 로그만)
+      if (process.env.NODE_ENV !== 'production') {
+        details = [{ stack: exception.stack }];
+      }
+
+      // logger.error(exception.message, exception.stack);
+    } else {
+      // Error도 아니고 HttpException도 아닌 unknown
+      message = typeof exception === 'string' ? exception : message;
     }
 
     // 운영서비스 권장: 캐시 금지
