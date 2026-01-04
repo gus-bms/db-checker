@@ -1,0 +1,9 @@
+import { Module } from '@nestjs/common';
+import { HealthController } from './health.controller';
+import { MysqlConnectorModule } from '@/connectors/mysql/mysql-connector.module';
+
+@Module({
+  imports: [MysqlConnectorModule],
+  controllers: [HealthController],
+})
+export class ApiModule {}
