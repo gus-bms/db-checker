@@ -6,7 +6,7 @@ import { MysqlQueryRunner } from '../connectors/mysql/mysql.query-runner';
 export class HealthController {
   constructor(@Inject(MYSQL_RUNNER) private readonly mysql: MysqlQueryRunner) {}
 
-  @Get('mysql')
+  @Get('/check')
   async mysqlHealth() {
     const query = `SELECT * FROM users where cid = 13361 and uclass = 'B'`;
     const row = await this.mysql.queryOne<{ now: string }>(query);
