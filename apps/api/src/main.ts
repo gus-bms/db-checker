@@ -12,6 +12,14 @@ async function bootstrap() {
   // 전역 예외 처리
   app.useGlobalFilters(new GlobalExceptionFilter());
 
+  // CORS 허용
+  app.enableCors({
+    origin: ['http://localhost:5173'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  });
+
   await app.listen(process.env.PORT ?? 3000);
 }
 
