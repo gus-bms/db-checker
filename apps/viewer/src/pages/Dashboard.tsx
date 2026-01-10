@@ -40,7 +40,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="mt-4">
-          <MetricsChart snapshot={latest} />
+          <MetricsChart />
         </div>
 
         <div className="mt-4">
