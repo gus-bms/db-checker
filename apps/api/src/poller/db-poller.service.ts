@@ -20,6 +20,11 @@ export class DbPollerService implements OnModuleInit, OnModuleDestroy {
   private readonly intervalMs = 5000;
   private readonly latestTtlSec = 15; // interval(5s) * 3
   private readonly windowMs = 60 * 60 * 1000; // 1h
+  private readonly lockKey = 'db:poller:lock';
+  private readonly lockTtlMs = 8000; // slightly longer than interval
+  private readonly instanceId = `${process.pid}-${Math.random()
+    .toString(36)
+    .slice(2, 10)}`;
 
   // processlist 수집 옵션(MVP)
   private readonly processOpts = {
@@ -51,6 +56,38 @@ export class DbPollerService implements OnModuleInit, OnModuleDestroy {
     const started = Date.now();
 
     try {
+      const acquireOrRefresh = `
+        local key = KEYS[1]
+        local owner = ARGV[1]
+        local ttl = tonumber(ARGV[2])
+
+        local cur = redis.call("GET", key)
+
+        if cur == owner then
+          -- 내가 리더면 갱신
+          return redis.call("PEXPIRE", key, ttl)  -- 1 or 0
+        end
+
+        -- 리더가 아니면 선점 시도
+        local ok = redis.call("SET", key, owner, "PX", ttl, "NX")
+        if ok then
+          return 1
+        else
+          return 0
+        end
+      `;
+      const ok = await this.redis.eval(
+        acquireOrRefresh,
+        1,
+        this.lockKey,
+        this.instanceId,
+        String(this.lockTtlMs),
+      );
+      if (Number(ok) !== 1) {
+        this.logger.debug('tick skipped (lock not acquired)');
+        return;
+      }
+
       const [snapshot, processlist] = await Promise.all([
         this.snapshotService.getSnapshot(),
         this.processlistService.getProcesslist(this.processOpts),
