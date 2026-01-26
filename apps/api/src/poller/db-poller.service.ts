@@ -106,6 +106,10 @@ export class DbPollerService implements OnModuleInit, OnModuleDestroy {
       p.set('db:latest:snapshot', snapshotJson, 'EX', this.latestTtlSec);
       p.set('db:latest:processlist', processJson, 'EX', this.latestTtlSec);
 
+      // pub/sub
+      p.publish('db:pub:snapshot', snapshotJson);
+      p.publish('db:pub:processlist', processJson);
+
       // timeseries (snapshot only)
       p.zadd('db:ts:snapshot', tsMs, snapshotJson);
       p.zremrangebyscore('db:ts:snapshot', '-inf', minScore);

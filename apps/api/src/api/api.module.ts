@@ -10,6 +10,7 @@ import { DbSnapshotService } from './db-snapshot.service';
 import { RedisModule } from '@/redis/redis.module';
 import { DbCacheController } from './db-cache.controller';
 import { DbPollerService } from '@/poller/db-poller.service';
+import { DbGateway } from '@/ws/db.gateway';
 
 @Module({
   imports: [MysqlConnectorModule, RedisModule],
@@ -25,6 +26,7 @@ import { DbPollerService } from '@/poller/db-poller.service';
     DbProcesslistService,
     DbSnapshotService,
     DbPollerService,
+    DbGateway,
   ],
 })
 export class ApiModule {}
