@@ -7,6 +7,7 @@ import { ApiEnvelope, DbSnapshotSchema, ProcessListDataSchema } from './schema';
 const pollMs = Number(import.meta.env.VITE_POLL_INTERVAL_MS ?? '500');
 const retryN = Number(import.meta.env.VITE_QUERY_RETRY ?? '2');
 const retry = Number.isFinite(retryN) ? retryN : 2;
+const useWs = Boolean(import.meta.env.VITE_WS_URL);
 
 const PATHS = {
   snapshot: '/db/snapshot',
@@ -37,8 +38,11 @@ export function useSnapshot() {
       getJson(PATHS.snapshot, ApiEnvelope(DbSnapshotSchema), signal).then(
         (r) => r.data,
       ),
-    refetchInterval: (qq) => (qq.state.status === 'error' ? false : pollMs),
-    staleTime: pollMs,
+    refetchInterval: useWs
+      ? false
+      : (qq) => (qq.state.status === 'error' ? false : pollMs),
+    staleTime: useWs ? Infinity : pollMs,
+    enabled: !useWs,
     retry,
   });
 
@@ -102,8 +106,11 @@ export function useProcessList() {
         ApiEnvelope(ProcessListDataSchema),
         signal,
       ).then((r) => r.data.items),
-    refetchInterval: (qq) => (qq.state.status === 'error' ? false : pollMs),
-    staleTime: pollMs,
+    refetchInterval: useWs
+      ? false
+      : (qq) => (qq.state.status === 'error' ? false : pollMs),
+    staleTime: useWs ? Infinity : pollMs,
+    enabled: !useWs,
     retry,
   });
 }

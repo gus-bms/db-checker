@@ -43,6 +43,13 @@ export const ProcessListDataSchema = z.object({
   items: ProcesslistItemSchema.array(),
 });
 
+export const SnapshotSeriesSchema = z.object({
+  from: z.number(),
+  to: z.number(),
+  count: z.number(),
+  items: DbSnapshotSchema.array(),
+});
+
 export const ApiEnvelope = <T extends z.ZodTypeAny>(data: T) =>
   z.object({
     requestId: z.string().nullable(),
