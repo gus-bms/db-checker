@@ -11,5 +11,8 @@
     "build:viewer": "npm --workspace apps/viewer run build",
     "lint": "eslint .",
     "format": "prettier . --write"
+  },
+  "dependencies": {
+    "@nestjs/platform-express": "^11.1.11"
   }
 }
