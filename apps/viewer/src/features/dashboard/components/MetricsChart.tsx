@@ -14,7 +14,12 @@ const TOOLTIP_H = 76; // 대략(너무 작으면 아래 clamp가 덜 먹음)
 const PAD = 8;
 
 function fmtTime(t: number) {
-  return new Date(t).toLocaleTimeString();
+  return new Date(t).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
 }
 
 function clamp(v: number, min: number, max: number) {
@@ -61,8 +66,13 @@ export default function MetricsChart() {
   }, [series]);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <div className="text-sm font-semibold text-slate-900">Connections</div>
+    <div className="glass-card rounded-xl p-4">
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-semibold text-slate-900">Connections</div>
+        <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+          live
+        </div>
+      </div>
 
       {/* ✅ overflow-hidden으로 "툴팁이 밖으로 튀며 흔들리는" 문제 방지 */}
       <div ref={wrapRef} className="mt-3 h-56 overflow-hidden">
@@ -136,12 +146,16 @@ export default function MetricsChart() {
               dataKey="threads_running"
               dot={false}
               isAnimationActive={false}
+              stroke="#0f766e"
+              strokeWidth={2}
             />
             <Line
               type="monotone"
               dataKey="threads_connected"
               dot={false}
               isAnimationActive={false}
+              stroke="#f97316"
+              strokeWidth={2}
             />
           </LineChart>
         </ResponsiveContainer>

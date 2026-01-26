@@ -50,26 +50,49 @@ export default function ProcessTable({
   });
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="text-sm font-semibold text-slate-900">Process List</div>
+    <div className="glass-card rounded-xl p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold text-slate-900">
+            Process List
+          </div>
+          <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+            live threads
+          </div>
+        </div>
         <input
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
           placeholder="filter…"
-          className="w-72 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+          className="w-full rounded-xl border border-slate-200 bg-white/70 px-3 py-2 text-sm outline-none focus:border-slate-400 md:w-72"
         />
       </div>
 
-      <div className="mt-3 overflow-auto">
-        <table className="w-full border-collapse text-sm">
+      <div className="mt-4 overflow-auto rounded-lg border border-slate-100 bg-white/70">
+        <table className="w-full table-fixed border-collapse text-sm">
           <thead>
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id} className="border-b border-slate-200 text-left">
                 {hg.headers.map((h) => (
                   <th
                     key={h.id}
-                    className="whitespace-nowrap px-2 py-2 font-semibold text-slate-700"
+                    className={`sticky top-0 z-10 whitespace-nowrap bg-white/90 px-3 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 backdrop-blur ${
+                      h.column.id === 'id'
+                        ? 'w-16'
+                        : h.column.id === 'user'
+                          ? 'w-28'
+                          : h.column.id === 'host'
+                            ? 'w-44'
+                            : h.column.id === 'db'
+                              ? 'w-24'
+                              : h.column.id === 'command'
+                                ? 'w-24'
+                                : h.column.id === 'time'
+                                  ? 'w-20'
+                                  : h.column.id === 'state'
+                                    ? 'w-40'
+                                : 'w-[360px]'
+                    }`}
                     onClick={h.column.getToggleSortingHandler()}
                     style={{
                       cursor: h.column.getCanSort() ? 'pointer' : 'default',
@@ -91,7 +114,7 @@ export default function ProcessTable({
             {isLoading ? (
               <tr>
                 <td
-                  className="px-2 py-3 text-slate-500"
+                  className="px-3 py-4 text-slate-500"
                   colSpan={columns.length}
                 >
                   loading…
@@ -99,11 +122,18 @@ export default function ProcessTable({
               </tr>
             ) : table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((r) => (
-                <tr key={r.id} className="border-b border-slate-100">
+                <tr
+                  key={r.id}
+                  className="border-b border-slate-100 transition hover:bg-slate-50/80"
+                >
                   {r.getVisibleCells().map((c) => (
                     <td
                       key={c.id}
-                      className="max-w-[520px] px-2 py-2 align-top text-slate-800"
+                      className={`px-3 py-2 align-top text-slate-800 ${
+                        c.column.id === 'info'
+                          ? 'max-w-[360px] whitespace-normal break-words'
+                          : 'whitespace-nowrap'
+                      }`}
                     >
                       {flexRender(c.column.columnDef.cell, c.getContext())}
                     </td>
@@ -113,7 +143,7 @@ export default function ProcessTable({
             ) : (
               <tr>
                 <td
-                  className="px-2 py-3 text-slate-500"
+                  className="px-3 py-4 text-slate-500"
                   colSpan={columns.length}
                 >
                   no rows

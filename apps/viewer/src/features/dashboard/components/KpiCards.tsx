@@ -46,12 +46,12 @@ export default function KpiCards({
       {(isLoading ? skeleton : items).map((it, idx) => (
         <div
           key={idx}
-          className="rounded-xl border border-slate-200 bg-white p-4"
+          className="glass-card relative overflow-hidden rounded-xl p-4"
         >
-          <div className="text-xs text-slate-500">
+          <div className="text-xs uppercase tracking-[0.15em] text-slate-500">
             {isLoading ? '…' : it.label}
           </div>
-          <div className="mt-1 text-2xl font-semibold text-slate-900">
+          <div className="mt-3 text-2xl font-semibold text-slate-900">
             {isLoading ? '—' : it.value}
           </div>
         </div>
