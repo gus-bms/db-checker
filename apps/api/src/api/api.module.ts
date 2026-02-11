@@ -11,11 +11,14 @@ import { RedisModule } from '@/redis/redis.module';
 import { DbCacheController } from './db-cache.controller';
 import { DbPollerService } from '@/poller/db-poller.service';
 import { DbGateway } from '@/ws/db.gateway';
+import { NotificatorService } from '@/notifications/notificator.service';
+import { ConfigController } from './config.controller';
 
 @Module({
   imports: [MysqlConnectorModule, RedisModule],
   controllers: [
     HealthController,
+    ConfigController,
     DbResourcesController,
     DbProcesslistController,
     DbSnapshotController,
@@ -27,6 +30,7 @@ import { DbGateway } from '@/ws/db.gateway';
     DbSnapshotService,
     DbPollerService,
     DbGateway,
+    NotificatorService,
   ],
 })
 export class ApiModule {}
