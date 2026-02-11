@@ -2,7 +2,13 @@
 import { useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getJson } from './client';
-import { ApiEnvelope, DbSnapshotSchema, ProcessListDataSchema } from './schema';
+import {
+  ApiEnvelope,
+  DbSnapshotSchema,
+  ProcessListDataSchema,
+  ThresholdsSchema,
+  type Thresholds,
+} from './schema';
 
 const pollMs = Number(import.meta.env.VITE_POLL_INTERVAL_MS ?? '500');
 const retryN = Number(import.meta.env.VITE_QUERY_RETRY ?? '2');
@@ -12,6 +18,7 @@ const useWs = Boolean(import.meta.env.VITE_WS_URL);
 const PATHS = {
   snapshot: '/db/snapshot',
   processList: '/db/process-list',
+  thresholds: '/config/thresholds',
 };
 
 // ✅ 차트는 1초 샘플링
@@ -113,4 +120,16 @@ export function useProcessList() {
     enabled: !useWs,
     retry,
   });
+}
+
+export function useThresholds() {
+  return useQuery({
+    queryKey: ['thresholds'],
+    queryFn: ({ signal }) =>
+      getJson(PATHS.thresholds, ApiEnvelope(ThresholdsSchema), signal).then(
+        (r) => r.data,
+      ),
+    staleTime: Infinity,
+    retry,
+  }) as { data?: Thresholds };
 }

@@ -10,6 +10,7 @@ import Redis from 'ioredis';
 import { REDIS_CLIENT } from '@/redis/redis.contants';
 import { DbSnapshotService } from '../api/db-snapshot.service';
 import { DbProcesslistService } from '../api/db-processlist.service';
+import { NotificatorService } from '@/notifications/notificator.service';
 
 @Injectable()
 export class DbPollerService implements OnModuleInit, OnModuleDestroy {
@@ -37,6 +38,7 @@ export class DbPollerService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly snapshotService: DbSnapshotService,
     private readonly processlistService: DbProcesslistService,
+    private readonly notificator: NotificatorService,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
   ) {}
 
@@ -92,6 +94,8 @@ export class DbPollerService implements OnModuleInit, OnModuleDestroy {
         this.snapshotService.getSnapshot(),
         this.processlistService.getProcesslist(this.processOpts),
       ]);
+
+      await this.notificator.notifySnapshot(snapshot);
 
       const tsMs = snapshot?.ts ? Date.parse(snapshot.ts) : Date.now();
       const now = Date.now();

@@ -1,9 +1,13 @@
-import { useSnapshot, useProcessList } from '../shared/api/hooks';
+import {
+  useSnapshot,
+  useProcessList,
+  useThresholds,
+} from '../shared/api/hooks';
 import { useDbSocketSubscription } from '../shared/ws/useDbSocket';
 import KpiCards from '../features/dashboard/components/KpiCards';
 import MetricsChart from '../features/dashboard/components/MetricsChart';
 import ProcessTable from '../features/dashboard/components/ProcessTable';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Level = 'ok' | 'warn' | 'critical';
 type Toast = {
@@ -29,6 +33,7 @@ export default function DashboardPage() {
   useDbSocketSubscription();
   const snapQ = useSnapshot();
   const procQ = useProcessList();
+  const thresholdsQ = useThresholds();
   const useWs = Boolean(import.meta.env.VITE_WS_URL);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const prevStatusRef = useRef<Level>('ok');
@@ -46,42 +51,66 @@ export default function DashboardPage() {
   const isSnapLoading = snapQ.isLoading || (useWs && !snapQ.data);
   const isProcLoading = procQ.isLoading || (useWs && !procQ.data);
 
-  const alerts = latest
-    ? [
-        {
-          key: 'conn',
-          label: 'Connection usage',
-          value: `${latest.connections.conn_usage_pct.toFixed(1)}%`,
-          level: levelFor(latest.connections.conn_usage_pct, 40, 70),
-          note: `Max ${latest.connections.max_connections}`,
-        },
-        {
-          key: 'threads',
-          label: 'Threads running',
-          value: latest.connections.threads_running,
-          level: levelFor(latest.connections.threads_running, 50, 100),
-          note: `Connected ${latest.connections.threads_connected}`,
-        },
-        {
-          key: 'locks',
-          label: 'Row lock waits (current)',
-          value: latest.innodb_locks.row_lock_current_waits ?? 0,
-          level: levelFor(
-            latest.innodb_locks.row_lock_current_waits ?? 0,
-            3,
-            10,
-          ),
-          note: `Total ${latest.innodb_locks.row_lock_waits}`,
-        },
-        {
-          key: 'slow',
-          label: 'Slow queries',
-          value: latest.traffic.slow_queries,
-          level: levelFor(latest.traffic.slow_queries, 10, 50),
-          note: 'Cumulative',
-        },
-      ]
-    : [];
+  const thresholds = useMemo(
+    () =>
+      thresholdsQ.data ?? {
+        conn_usage_pct: { warn: 70, critical: 85 },
+        threads_running: { warn: 50, critical: 100 },
+        row_lock_current_waits: { warn: 3, critical: 10 },
+        slow_queries: { warn: 10, critical: 50 },
+      },
+    [thresholdsQ.data],
+  );
+
+  const alerts = useMemo(() => {
+    if (!latest) return [];
+    return [
+      {
+        key: 'conn',
+        label: 'Connection usage',
+        value: `${latest.connections.conn_usage_pct.toFixed(1)}%`,
+        level: levelFor(
+          latest.connections.conn_usage_pct,
+          thresholds.conn_usage_pct.warn,
+          thresholds.conn_usage_pct.critical,
+        ),
+        note: `Max ${latest.connections.max_connections}`,
+      },
+      {
+        key: 'threads',
+        label: 'Threads running',
+        value: latest.connections.threads_running,
+        level: levelFor(
+          latest.connections.threads_running,
+          thresholds.threads_running.warn,
+          thresholds.threads_running.critical,
+        ),
+        note: `Connected ${latest.connections.threads_connected}`,
+      },
+      {
+        key: 'locks',
+        label: 'Row lock waits (current)',
+        value: latest.innodb_locks.row_lock_current_waits ?? 0,
+        level: levelFor(
+          latest.innodb_locks.row_lock_current_waits ?? 0,
+          thresholds.row_lock_current_waits.warn,
+          thresholds.row_lock_current_waits.critical,
+        ),
+        note: `Total ${latest.innodb_locks.row_lock_waits}`,
+      },
+      {
+        key: 'slow',
+        label: 'Slow queries',
+        value: latest.traffic.slow_queries,
+        level: levelFor(
+          latest.traffic.slow_queries,
+          thresholds.slow_queries.warn,
+          thresholds.slow_queries.critical,
+        ),
+        note: 'Cumulative',
+      },
+    ];
+  }, [latest, thresholds]);
 
   const status = pickTopLevel(alerts.map((a) => a.level));
   const statusLabel =

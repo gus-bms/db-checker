@@ -43,6 +43,13 @@ export const ProcessListDataSchema = z.object({
   items: ProcesslistItemSchema.array(),
 });
 
+export const ThresholdsSchema = z.object({
+  conn_usage_pct: z.object({ warn: z.number(), critical: z.number() }),
+  threads_running: z.object({ warn: z.number(), critical: z.number() }),
+  row_lock_current_waits: z.object({ warn: z.number(), critical: z.number() }),
+  slow_queries: z.object({ warn: z.number(), critical: z.number() }),
+});
+
 export const SnapshotSeriesSchema = z.object({
   from: z.number(),
   to: z.number(),
@@ -62,3 +69,4 @@ export const ApiEnvelope = <T extends z.ZodTypeAny>(data: T) =>
 
 export type DbSnapshot = z.infer<typeof DbSnapshotSchema>;
 export type ProcessItem = z.infer<typeof ProcesslistItemSchema>;
+export type Thresholds = z.infer<typeof ThresholdsSchema>;
